@@ -3,123 +3,95 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 using System.IO;
-namespace CalendarProject
-{
-    public class InputFile
-    {
+namespace CalendarProject {
+    public class InputFile {
         private string path;
-        public string getPath()
-        {
+        public string getPath() {
             return path;
         }
-        public string[] readFile()
-        {
+        public string[] readFile() {
             return File.ReadAllLines(path);
         }
-        public void setPath(string path)
-        {
+        public void setPath(string path) {
             this.path = path;
         }
-        public string[] getSubstrings(string line)
-        {
+        public string[] getSubstrings(string line) {
             string[] substrings = line.Split(Const.SEMICOLON_SEPARATOR);
             return substrings;
         }
-        public InputFile(string path)
-        {
+        public InputFile(string path) {
             this.path = path;
         }
     }
-    public class OutputFile
-    {
+    public class OutputFile {
         private string path;
-        public OutputFile(string path)
-        {
+        public OutputFile(string path) {
             this.path = path;
         }
-        public void setPath(string path)
-        {
+        public void setPath(string path) {
             this.path = path;
         }
-        public string getPath()
-        {
+        public string getPath() {
             return path;
         }
-        public void fileWrite(StreamWriter streanwriter, Field field)
-        {
+        public void fileWrite(StreamWriter streanwriter, Field field) {
             streanwriter.WriteLine(Convert.ToString(field.getName() + Const.COLON_SEPARATOR + field.getValue()));
         }
-        public void write(List<Field> list1, List<Event> list2, List<Field> list3, StreamWriter streamwriter)
-        {
+        public void write(List<Field> list1, List<Event> list2, List<Field> list3, StreamWriter streamwriter) {
             streamwriter.AutoFlush = true;
             Console.SetOut(streamwriter);
             Console.SetError(streamwriter);
-            foreach (Field field in list1)
-            {
+            foreach (Field field in list1) {
                 fileWrite(streamwriter, field);
             }
-            foreach (Event singleEvent in list2)
-            {
-                foreach (Field field in singleEvent.events)
-                {
+            foreach (Event singleEvent in list2) {
+                foreach (Field field in singleEvent.events) {
                     fileWrite(streamwriter, field);
                 }
             }
-            foreach (Field field in list3)
-            {
+            foreach (Field field in list3) {
                 fileWrite(streamwriter, field);
             }
-                    streamwriter.Close();
+            streamwriter.Close();
         }
     }
-    public static class Const
-    {
+    public static class Const {
         public static char SEMICOLON_SEPARATOR = ';';
         public static string COLON_SEPARATOR = ":";
         public static string NEW_STRING_SEPARATOR = "\n";
     }
-    public class Field
-    {
+    public class Field {
         private String name;
         private String value;
         private int inputOrder;
         private int outputOrder;
         private DateTime date;
-        public void setDate()
-        {
+        public void setDate() {
            TimeAndDate timeAndDate = new TimeAndDate(getValue());
             date = timeAndDate.getDateAndTime();
         }
-        public DateTime getDate()
-        {
+        public DateTime getDate() {
             return date; 
         }
-        public int getInputOrder()
-        { 
+        public int getInputOrder() { 
             return inputOrder;
         }
-        public int getOutputOrder()
-        {
+        public int getOutputOrder() {
             return outputOrder;
         }
-        public string getName()
-        {
+        public string getName() {
             return name;
         }
-        public string getValue()
-        {
+        public string getValue() {
             return value;
         }
-        public void setValue(string value)
-        {
+        public void setValue(string value) {
             this.value = value;
         }
-        public void setInputOrder(int newInputOrder)
-        {
+        public void setInputOrder(int newInputOrder) {
             this.inputOrder = newInputOrder;
         }
-        public Field(string name, string value, int inputOrder, int outputOrder)
-        {
+        public Field(string name, string value, int inputOrder, int outputOrder) {
             this.name = name;
             this.value = value;
             this.inputOrder = inputOrder;
@@ -127,23 +99,19 @@ namespace CalendarProject
             setDate();
         }
     }
-    public class Sort
-    {
+    public class Sort {
         private List<Field> field;
-        public Sort(List<Field> field)
-        {
+        public Sort(List<Field> field) {
             this.field = field;
         }
-        public void sortList()
-        {
+        public void sortList() {
             field.Sort(delegate(Field x, Field y)
             {
                 return x.getOutputOrder().CompareTo(y.getOutputOrder());
             });
         }
     }
-    public class Calendar
-    {
+    public class Calendar {
         private Sort sortedList;
         private InputFile inputFile;
         private OutputFile outputFile;
@@ -156,8 +124,7 @@ namespace CalendarProject
         private static Field calscale = new Field("CALSCALE", "GREGORIAN", -1, 4);
         private static Field method = new Field("METHOD", "PUBLISH", -1, 5);
         private static Field endCalendar = new Field("END", "VCALENDAR", -1, 21);
-        public Calendar(InputFile inputFile, OutputFile outputFile)
-        {
+        public Calendar(InputFile inputFile, OutputFile outputFile) {
             calendar = new List<Field>(new Field[] { beginCalendar, provid, version, calscale, method });
             calendarEnd = new List<Field>(new Field[] { endCalendar });
             sortedList = new Sort(calendar);
@@ -167,75 +134,59 @@ namespace CalendarProject
             fillEventList();
             setDate();
         }
-        private void setDate()
-        {
-            foreach (Event events in eventList)
-            {
+        private void setDate()  {
+            foreach (Event events in eventList)  {
                 foreach(Field field in events.events)
                 {
                     field.setDate();
                 }
             }
         }
-        public List<Event> createMultipleEventListWithValidNumberOfEvents()
-        {
+        public List<Event> createMultipleEventListWithValidNumberOfEvents() {
             string[] lines = inputFile.readFile();
             Event newEvent = new Event();
-            for (int i = 0; i < lines.Length; i++)
-            {
+            for (int i = 0; i < lines.Length; i++) {
                 string[] substrings = inputFile.getSubstrings(lines[i]);
                 newEvent = new Event(substrings);
                 eventList.Add(newEvent);
             }
-            foreach (Event events in eventList)
-            {
+            foreach (Event events in eventList) {
                 Sort sortList = new Sort(events.events);
                 sortList.sortList();
             }
             return eventList;
         }
-        private void fillEventList()
-        {
+        private void fillEventList() {
             eventList = createMultipleEventListWithValidNumberOfEvents();
         }
-        public void write(StreamWriter streamwriter)
-        {
+        public void write(StreamWriter streamwriter) {
             outputFile.write(calendar, eventList, calendarEnd, streamwriter);
         }
-        public Calendar createCalendarByUserName(string userName)
-        {
+        public Calendar createCalendarByUserName(string userName) {
             Calendar filteredCalendar = new Calendar(inputFile, outputFile);
             filteredCalendar.eventList.Clear();
-            foreach (Event singleEvent in eventList)
-            {
+            foreach (Event singleEvent in eventList) {
                 if(singleEvent.events.Exists(x => x.getValue() == userName)) {
                     filteredCalendar.eventList.Add(singleEvent);
                 }
             }
             return filteredCalendar;
         }
-        public Calendar deleteEventsBy(string userDate)
-        {
+        public Calendar deleteEventsBy(string userDate)  {
             Calendar calendarWithoutDeletedEvents = new Calendar(inputFile, outputFile);
             DateTime dateAndTime = DateTime.ParseExact(userDate, "dd.MM.yyyy HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);
             calendarWithoutDeletedEvents.eventList.Clear();
-
-            foreach (Event singleEvent in eventList)
-            {
-                if(singleEvent.events.Exists(x => x.getName() == "DTEND"))
-                {
-                    if(singleEvent.events.Find(x => x.getName() == "DTEND").getDate() > dateAndTime)
-                    {
+            foreach (Event singleEvent in eventList) {
+                if(singleEvent.events.Exists(x => x.getName() == "DTEND")) {
+                    if(singleEvent.events.Find(x => x.getName() == "DTEND").getDate() > dateAndTime) {
                         calendarWithoutDeletedEvents.eventList.Add(singleEvent);
                     }
                 }
             }
             return calendarWithoutDeletedEvents;
         }
-    }
-    
-    public class Alarm
-    {
+    }  
+    public class Alarm {
         private Sort sortedList;
         private static Field begin = new Field("BEGIN", "VALARM", -1, 15);
         private static Field action = new Field("ACTION", "DISPLAY", -1, 16);
@@ -243,15 +194,13 @@ namespace CalendarProject
         private static Field triger = new Field("TRIGGER", "-PT1440M", -1, 18);
         private static Field end = new Field("END", "VALARM", -1, 19);
         public List<Field> alarms = new List<Field>();
-        public Alarm()
-        {
+        public Alarm() {
             alarms = new List<Field>(new Field[] { begin, action, description, triger, end });
             sortedList = new Sort(alarms);
             sortedList.sortList();
         }
     }
-    public class Event
-    {
+    public class Event {
         private Alarm alarms = new Alarm();
         private Sort sortedList;
         private Field calname = new Field("X-WR-CALNAME", "", 1, 6);
@@ -265,8 +214,7 @@ namespace CalendarProject
         private Field summary = new Field("SUMMARY", "", 8, 14);
         private Field endEvent = new Field("END", "VEVENT", -1, 20);
         public List<Field> events = new List<Field>();
-        public Event()
-        {
+        public Event()  {
             events = new List<Field>(new Field[] { calname, beginEvent, dtstart, dtend, dtstamp, uid, description, location, summary, endEvent });
             sortedList = new Sort(events);
             events.AddRange(alarms.alarms);
@@ -284,8 +232,7 @@ namespace CalendarProject
              this.sortedList.sortList();
          }
     }
-    public class TimeAndDate
-    {
+    public class TimeAndDate {
         private string icalDate;
         private string dateString;
         public void setDate(string date) {
@@ -296,16 +243,10 @@ namespace CalendarProject
             dateString = deleteSymbolsInIcalDate(icalDate);
             dateAndTime = format(dateString);
         }
-        public string deleteSymbolsInIcalDate(string icalDate)
-        {
+        public string deleteSymbolsInIcalDate(string icalDate) {
             string dateString = icalDate;
-            for (int i = 0; i < dateString.Length; i++)
-            {
-                if (dateString[i] == 'T' || dateString[i] == 'Z')
-                {
-                    dateString = dateString.Remove(i,1);
-                }
-            }
+            dateString =  dateString.Replace("T", "");
+            dateString = dateString.Replace("Z", "");
             return dateString;
         }
         public DateTime getDateAndTime() {
@@ -313,23 +254,24 @@ namespace CalendarProject
         }
         private DateTime dateAndTime;
         public DateTime format(string dateString) {
-            if(dateString.Length >0 && dateString[0] >= '0' && dateString[0] <= '9' && dateString != "2.0")
-            {
-                DateTime date = DateTime.ParseExact(dateString, "yyyyddMMHHmmss", System.Globalization.CultureInfo.CurrentCulture);
-                return date;
-            }else {
-                DateTime date = DateTime.MinValue;
-                return date;
+            DateTime date = DateTime.MinValue;
+            int amountOfChar = 0;
+            for (int i = 0; i < dateString.Length; i++)  {
+                if (dateString.Length == 14 && dateString[i] >= '0' && dateString[i] <= '9') {
+                    amountOfChar++;
+                }
             }
-                
+            if (amountOfChar == 14) {
+                date = DateTime.ParseExact(dateString, "yyyyddMMHHmmss", System.Globalization.CultureInfo.CurrentCulture);
+            }
+            return date;
         }
     }
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
+    public class Program {
+        public static void Main(string[] args) {
             InputFile inputFile = new InputFile(@"H:\ConsoleApplication2\readfile.txt");
             OutputFile outputFile = new OutputFile(@"H:\ConsoleApplication2\writefile.txt");
+
             Calendar calendar = new Calendar(inputFile, outputFile);
             calendar.write(new StreamWriter(Console.OpenStandardOutput()));
             calendar.write(new StreamWriter(new FileStream(outputFile.getPath(), FileMode.Create)));
