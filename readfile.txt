@@ -1,2 +1,0 @@
-userid@gmail.com;20161108T000000Z;20161108T010000Z;20161204T133545Z;p1vldelo8gee2p82090lan8npc@google.com;Ical;Inet;Ical;
-userid2@gmail.com;20161109T000000Z;20161109T010000Z;20161304T133545Z;c@google.com;Ical2;Inet2;Ical2;
